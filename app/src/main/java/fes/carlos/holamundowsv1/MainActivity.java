@@ -2,6 +2,10 @@ package fes.carlos.holamundowsv1;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,10 +21,11 @@ import fes.carlos.holamundowsv1.services.ApiCallback;
 import fes.carlos.holamundowsv1.services.CodigoPostalService;
 
 public class MainActivity extends AppCompatActivity {
-    
+
     CodigoPostalService service = new CodigoPostalService();
-    
-    
+    Spinner spinner;
+    ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,35 +36,19 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        // obtenerEstados();
-        buscarAsentamiento("Roma");
-    }
+        spinner = findViewById(R.id.spinner);
+        progressBar = findViewById(R.id.progressBar);
+        obtenerEstados();
 
-    private void buscarAsentamiento(String asentamiento) {
-        service.buscarAsentamiento(asentamiento, new ApiCallback<List<CodigoPostalModel>>() {
-            @Override
-            public void onSuccess(List<CodigoPostalModel> estados) {
-                for (CodigoPostalModel codigoPostalModel :
-                        estados) {
-                    Log.d("Asentamientos", codigoPostalModel.getAsentamiento());
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-
-            }
-        });
     }
 
     private void obtenerEstados() {
         service.obtenerTodosLosEstados(new ApiCallback<List<EstadoModel>>() {
             @Override
             public void onSuccess(List<EstadoModel> estados) {
-                for (EstadoModel estadoModel :
-                        estados) {
-                    Log.d("Estado", estadoModel.getNombre());
-                }
+                llenarSpinner(estados);
+                progressBar.setVisibility(ProgressBar.INVISIBLE);
+                Toast.makeText(getBaseContext(), "Estados cargados", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -68,4 +57,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void llenarSpinner(List<EstadoModel> estados) {
+        estados.add(0, new EstadoModel(0, "Seleccione "));
+        ArrayAdapter<EstadoModel> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                estados
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
 }
